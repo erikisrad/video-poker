@@ -8,10 +8,14 @@ import re
 import tkinter as tk
 from PIL import ImageTk, Image
 
+#math
 mu = 100
 sigma = 25
-window = tk.Tk()
 
+#misc
+logging.basicConfig(stream=sys.stderr, level=logging.INFO)
+
+#strings
 nothing = "NOTHING"
 lowPair = "LOW PAIR"
 jb = "JACKS OR BETTER"
@@ -23,8 +27,6 @@ fullHouse = "FULL HOUSE"
 quads = "QUADS"
 straightFlush = "STRAIGHT FLUSH"
 royalFlush = "ROYAL FLUSH"
-
-logging.basicConfig(stream=sys.stderr, level=logging.INFO)
 
 suits = {
     0: "s",  # spades
@@ -55,3 +57,12 @@ payout = { #hand name + payout multiplier
     royalFlush: 250
 }
 
+if __name__ == '__main__':
+    window = tk.Tk()
+    screen_width = window.winfo_screenwidth()  # Width of the screen
+    screen_height = window.winfo_screenheight()  # Height of the screen
+    window.geometry("+5+5")
+    window.title("poker")
+    window.mainloop()
+
+    input("Press any key to end")
