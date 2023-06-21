@@ -16,26 +16,28 @@ sigma = 25
 logging.basicConfig(stream=sys.stderr, level=logging.INFO)
 
 #strings
-nothing = "NOTHING"
-lowPair = "LOW PAIR"
-jb = "JACKS OR BETTER"
-twoPair = "TWO PAIR"
-three = "SET"
-straight = "STRAIGHT"
-flush = "FLUSH"
-fullHouse = "FULL HOUSE"
-quads = "QUADS"
-straightFlush = "STRAIGHT FLUSH"
-royalFlush = "ROYAL FLUSH"
+NOTHING = "NOTHING"
+LOWPAIR = "LOW PAIR"
+JORB = "JACKS OR BETTER"
+TWOPAIR = "TWO PAIR"
+THREE = "SET"
+STRAIGHT = "STRAIGHT"
+FLUSH = "FLUSH"
+FULLHOUSE = "FULL HOUSE"
+QUADS = "QUADS"
+STRAIGHTFLUSH = "STRAIGHT FLUSH"
+ROYALFLUSH = "ROYAL FLUSH"
 
-suits = {
+TITLE = "Jacks or Better"
+
+SUITS = {
     0: "s",  # spades
     1: "c",  # clubs
     2: "d",  # diamonds
     3: "h"  # hearts
 }
 
-ranks = {
+RANKS = {
     2: "2", 3: "3", 4: "4",
     5: "5", 6: "6", 7: "7",
     8: "8", 9: "9", 10: "10",
@@ -43,19 +45,34 @@ ranks = {
     14: "A"
 }
 
-payout = { #hand name + payout multiplier
-    nothing: 0,
-    lowPair: 0,
-    jb: 1,
-    twoPair: 2,
-    three: 3,
-    straight: 4,
-    flush: 6,
-    fullHouse: 9,
-    quads: 25,
-    straightFlush: 50,
-    royalFlush: 250
+PAYOUT = { #hand name + payout multiplier
+    NOTHING: 0,
+    LOWPAIR: 0,
+    JORB: 1,
+    TWOPAIR: 2,
+    THREE: 3,
+    STRAIGHT: 4,
+    FLUSH: 6,
+    FULLHOUSE: 9,
+    QUADS: 25,
+    STRAIGHTFLUSH: 50,
+    ROYALFLUSH: 250
 }
+
+
+class GUI:
+    def __init__(self):
+        self.root = tk.Tk()
+        self.root.title(TITLE)
+
+        #create grid
+        col_width = 5
+        row_width = 3
+        for i in range(col_width):
+            self.root.grid_columnconfigure(i, weight=0)
+        for i in range(row_width):
+            self.root.grid_rowconfigure(i, weight=0)
+
 
 if __name__ == '__main__':
     window = tk.Tk()
