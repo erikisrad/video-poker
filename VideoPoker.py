@@ -73,6 +73,8 @@ class GUI:
         for i in range(row_width):
             self.root.grid_rowconfigure(i, weight=0)
 
+        self.cardFrame = tk.Frame(self.root, highlightbackground="black", highlightthickness=1, padx=5, pady=5)
+
 
 if __name__ == '__main__':
     window = tk.Tk()
