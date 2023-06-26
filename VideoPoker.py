@@ -6,7 +6,9 @@ from copy import deepcopy
 from collections import defaultdict
 import re
 import tkinter as tk
+import tkinter.font
 from PIL import ImageTk, Image
+import time
 
 #math
 mu = 100
@@ -65,23 +67,42 @@ class GUI:
         self.root = tk.Tk()
         self.root.title(TITLE)
 
+        self.cardButtons = []
         #create grid
         col_width = 5
         row_width = 3
-        for i in range(col_width):
-            self.root.grid_columnconfigure(i, weight=0)
-        for i in range(row_width):
-            self.root.grid_rowconfigure(i, weight=0)
 
-        self.cardFrame = tk.Frame(self.root, highlightbackground="black", highlightthickness=1, padx=5, pady=5)
+        screen_width = self.root.winfo_screenwidth()
+        screen_height = self.root.winfo_screenheight()
+
+        img = Image.open('./resources/cards/default2.png')
+        imgW, imgH = img.size
+        new_img = img.resize((int(imgW/4), int(imgH/4)), Image.LANCZOS)
+        quality_val = 90
+        new_img.save('./resources/cards/default3.png', "PNG", quality=quality_val)
+        tkImg = ImageTk.PhotoImage(new_img)
+
+        for i in range(col_width):
+            self.root.grid_columnconfigure(i, weight=1)
+            self.cardButtons.append(tk.Button(self.root, image=tkImg, bd=0))
+            self.cardButtons[i].grid(row=1, column=i, sticky=tk.NSEW, padx=5, pady=5)
+        self.root.grid_rowconfigure(0, weight=1)
+        self.root.grid_rowconfigure(1, weight=0)
+        self.root.grid_rowconfigure(2, weight=1)
+
+        self.wagerFrame = tk.Frame(self.root)
+        self.wagerFrame.grid(row=2, column=0, sticky=tk.NW)
+
+        self.creditsLabel = tk.Label(self.wagerFrame, text='Credits:', font=('Segoe UI', 15, 'bold'), anchor=tk.NW)
+        self.creditsLabel.pack(side="left", anchor=tk.NW)
+
+        self.creditsValFrame = tk.Frame(self.wagerFrame, highlightbackground="black", highlightthickness=1)
+        self.creditsValFrame.pack(side="left", anchor=tk.NW)
+        self.creditsValue = tk.Label(self.creditsValFrame, text='$2000', font=('Segoe UI', 15), anchor=tk.NW)
+        self.creditsValue.pack(side="left", anchor=tk.NW)
+
+        self.root.mainloop()
 
 
 if __name__ == '__main__':
-    window = tk.Tk()
-    screen_width = window.winfo_screenwidth()  # Width of the screen
-    screen_height = window.winfo_screenheight()  # Height of the screen
-    window.geometry("+5+5")
-    window.title("poker")
-    window.mainloop()
-
-    input("Press any key to end")
+    gui = GUI()
