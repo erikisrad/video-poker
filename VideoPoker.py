@@ -70,7 +70,6 @@ class GUI:
         self.cardButtons = []
         #create grid
         col_width = 5
-        row_width = 3
 
         screen_width = self.root.winfo_screenwidth()
         screen_height = self.root.winfo_screenheight()
@@ -79,7 +78,6 @@ class GUI:
         imgW, imgH = img.size
         new_img = img.resize((int(imgW/4), int(imgH/4)), Image.LANCZOS)
         quality_val = 90
-        new_img.save('./resources/cards/default3.png', "PNG", quality=quality_val)
         tkImg = ImageTk.PhotoImage(new_img)
 
         for i in range(col_width):
@@ -91,17 +89,53 @@ class GUI:
         self.root.grid_rowconfigure(2, weight=1)
 
         self.wagerFrame = tk.Frame(self.root)
-        self.wagerFrame.grid(row=2, column=0, sticky=tk.NW)
+        self.wagerFrame.grid(row=2, column=0, columnspan=2)
 
-        self.creditsLabel = tk.Label(self.wagerFrame, text='Credits:', font=('Segoe UI', 15, 'bold'), anchor=tk.NW)
-        self.creditsLabel.pack(side="left", anchor=tk.NW)
+        self.wagerLabel = tk.Label(self.wagerFrame, text='Bet', font=('Segoe UI', 15, 'bold'), anchor=tk.NW)
+        self.wagerLabel.pack(side="left", anchor=tk.NW)
 
-        self.creditsValFrame = tk.Frame(self.wagerFrame, highlightbackground="black", highlightthickness=1)
-        self.creditsValFrame.pack(side="left", anchor=tk.NW)
-        self.creditsValue = tk.Label(self.creditsValFrame, text='$2000', font=('Segoe UI', 15), anchor=tk.NW)
-        self.creditsValue.pack(side="left", anchor=tk.NW)
+        self.wagerValue = tk.Label(self.wagerFrame, text='$100', font=('Segoe UI', 15), anchor=tk.NW)
+        self.wagerValue.pack(side="left", anchor=tk.NW)
 
-        self.root.mainloop()
+        self.playButton = tk.Button(self.root, text='Play', font=('Segoe UI', 15, 'bold'), borderwidth=3, padx=0, pady=0)
+        self.playButton.grid(row=2, column=2, sticky=tk.E+tk.W, pady=5)
+
+        self.creditsFrame = tk.Frame(self.root)
+        self.creditsFrame.grid(row=2, column=3, columnspan=2)
+
+        self.creditsLabel = tk.Label(self.creditsFrame, text='Credits:', font=('Segoe UI', 15, 'bold'), anchor=tk.NE)
+        self.creditsLabel.pack(side="left", anchor=tk.NE)
+
+        self.creditsValue = tk.Label(self.creditsFrame, text='$2000', font=('Segoe UI', 15), anchor=tk.NE)
+        self.creditsValue.pack(side="left", anchor=tk.NE)
+
+        #self.root.mainloop()
+
+        game = Game()
+
+
+class Game:
+    def __init__(self):
+        self.masterDeck = set()
+        for suit, rank in set(itertools.product(SUITS, RANKS)):
+            self.masterDeck.add(Card(suit, rank))
+
+    def start_round(self):
+
+
+
+class Card:
+    def __init__(self, suit, rank):
+        self.suit = suit
+        self.prettySuit = SUITS[suit]
+        self.rank = rank
+        self.prettyRank = RANKS[rank]
+
+    def __str__(self):
+        return f"{self.prettyRank}{self.prettySuit}"
+
+    def __repr__(self):
+        return str(self)
 
 
 if __name__ == '__main__':
