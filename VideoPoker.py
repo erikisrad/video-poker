@@ -123,7 +123,7 @@ class Game:
     def __init__(self, gui):
         self.gui = gui
         self.masterDeck = set()
-        self.cards = None
+        self.hand = None
         self.card_images = None
         self.deck = None
         for suit, rank in set(itertools.product(SUITS, RANKS)):
@@ -134,25 +134,26 @@ class Game:
     def start_round(self):
         self.deck = list(deepcopy(self.masterDeck))
         random.shuffle(self.deck)
-        self.cards = []
+        self.hand = []
         for i in range(5):
-            self.cards.append(self.deck.pop())
-            self.cards[i].gen_pic()
-            self.gui.cardButtons[i].configure(image=self.cards[i].pic, state='normal', command=lambda i=i: self.muck_card(i))
-            self.gui.cardButtons[i].image = self.cards[i].pic
+            self.hand.append(self.deck.pop())
+            self.hand[i].gen_pic()
+            self.gui.cardButtons[i].configure(image=self.hand[i].pic, state='normal', command=lambda i=i: self.muck_card(i))
+            self.gui.cardButtons[i].image = self.hand[i].pic
             self.gui.root.update()
             time.sleep(.2)
         self.gui.playButton.config(text="Continue", command=self.continue_round)
 
     def continue_round(self):
         for i in range(5):
-            if self.cards[i].mucked:
-                self.cards[i] = self.deck.pop()
-                self.cards[i].gen_pic()
+            if self.hand[i].mucked:
+                self.hand[i] = self.deck.pop()
+                self.hand[i].gen_pic()
                 self.gui.root.update()
                 time.sleep(.2)
             self.unmuck_card(i)
             self.gui.cardButtons[i].config(command=0)
+        print(self.evaluate_hand())
         self.gui.playButton.config(text="End", command=self.end_round)
 
     def end_round(self):
@@ -163,15 +164,82 @@ class Game:
     def muck_card(self, cardNum):
         self.gui.cardButtons[cardNum].configure(image=self.gui.cardBack, command=lambda i=cardNum: self.unmuck_card(i))
         self.gui.cardButtons[cardNum].image = self.gui.cardBack
-        self.cards[cardNum].mucked = True
-
-    def nuthin(self):
-        print("nuthin")
+        self.hand[cardNum].mucked = True
 
     def unmuck_card(self, cardNum):
-        self.gui.cardButtons[cardNum].configure(image=self.cards[cardNum].pic, command=lambda i=cardNum: self.muck_card(i))
-        self.gui.cardButtons[cardNum].image = self.cards[cardNum].pic
-        self.cards[cardNum].mucked = False
+        self.gui.cardButtons[cardNum].configure(image=self.hand[cardNum].pic, command=lambda i=cardNum: self.muck_card(i))
+        self.gui.cardButtons[cardNum].image = self.hand[cardNum].pic
+        self.hand[cardNum].mucked = False
+
+    def evaluate_hand(self):
+        def checkFlush(cardList):
+            flush = True
+            for card in cardList[1:]:
+                if card.suit != cardList[0].suit:
+                    flush = False
+                    break
+            return (flush)
+
+        def checkStraight(cardList):  # if cards are consecutive - ace can be high or low so check for A,2,3,4,5 as well
+            cardList = [x.rank for x in cardList]
+            return (len(set(cardList)) == len(cardList) and max(cardList) - min(cardList) == len(cardList) - 1) or \
+                   (sorted(cardList) == [2, 3, 4, 5, 14])
+
+        def checkPairing(cardList):
+            values = ([x.rank for x in cardList])
+            value_counts = defaultdict(int)
+            for v in values:
+                value_counts[v] += 1
+            result = []
+            for k, v in value_counts.items():
+                if v > 1:
+                    result.append([k, v])
+
+            pairs = 0
+            sets = 0
+            quads = 0
+            jackHigh = False
+            for match in result:
+                if match[1] == 2:
+                    pairs += 1
+                    if match[0] > 10:
+                        jackHigh = True
+                elif match[1] == 3:
+                    sets += 1
+                elif match[1] == 4:
+                    quads += 1
+            if (quads == 1):
+                return QUADS
+            elif (sets == 1 and pairs == 1):
+                return FULLHOUSE
+            elif (pairs == 2):
+                return TWOPAIR
+            elif (sets == 1):
+                return THREE
+            elif (pairs == 1 and jackHigh):
+                return JORB
+            elif (pairs == 1 and not jackHigh):
+                return LOWPAIR
+            else:
+                return NOTHING
+
+        straightResult = checkStraight(hand)
+        flushResult = checkFlush(hand)
+
+        if (straightResult and flushResult):
+            if sorted([x.rank for x in hand]) == [10, 11, 12, 13, 14]:
+                win = ROYALFLUSH
+            else:
+                win = STRAIGHTFLUSH
+        elif straightResult:
+            win = STRAIGHT
+        elif flushResult:
+            win = FLUSH
+        else:
+            win = checkPairing(hand)
+
+        return win
+
 
 class Card:
     def __init__(self, suit, rank):
