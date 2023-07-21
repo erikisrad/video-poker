@@ -99,10 +99,10 @@ class GUI:
         self.wagerLabel = tk.Label(self.wagerFrame, text='Bet', font=('Segoe UI', 15, 'bold'), anchor=tk.NW)
         self.wagerLabel.pack(side="left", anchor=tk.NW)
 
-        self.wagerValue = tk.Label(self.wagerFrame, text='$100', font=('Segoe UI', 15), anchor=tk.NW)
+        self.wagerValue = tk.Label(self.wagerFrame, text='?', font=('Segoe UI', 15), anchor=tk.NW)
         self.wagerValue.pack(side="left", anchor=tk.NW)
 
-        self.playButton = tk.Button(self.root, text='Play?', font=('Segoe UI', 15, 'bold'), borderwidth=3, padx=0, pady=0)
+        self.playButton = tk.Button(self.root, text='?', font=('Segoe UI', 15, 'bold'), borderwidth=3, padx=0, pady=0)
         self.playButton.grid(row=2, column=2, sticky=tk.E+tk.W, pady=5)
 
         self.creditsFrame = tk.Frame(self.root)
@@ -111,7 +111,7 @@ class GUI:
         self.creditsLabel = tk.Label(self.creditsFrame, text='Credits:', font=('Segoe UI', 15, 'bold'), anchor=tk.NE)
         self.creditsLabel.pack(side="left", anchor=tk.NE)
 
-        self.creditsValue = tk.Label(self.creditsFrame, text='$2000', font=('Segoe UI', 15), anchor=tk.NE)
+        self.creditsValue = tk.Label(self.creditsFrame, text='?', font=('Segoe UI', 15), anchor=tk.NE)
         self.creditsValue.pack(side="left", anchor=tk.NE)
 
         game = Game(self)
@@ -126,12 +126,21 @@ class Game:
         self.hand = None
         self.card_images = None
         self.deck = None
+        self.wager = 100
+        self.credits = 2000
         for suit, rank in set(itertools.product(SUITS, RANKS)):
             self.masterDeck.add(Card(suit, rank))
 
+        self.gui.wagerValue.config(text=f"${self.wager}")
+        self.gui.creditsValue.config(text=f"${self.credits}")
         self.gui.playButton.config(text="Play", command=self.start_round)
 
+    def update_credits(self, amount):
+        self.credits = self.credits + amount
+        self.gui.creditsValue.config(text=f"${self.credits}")
+
     def start_round(self):
+        self.update_credits(-abs(self.wager))
         self.deck = list(deepcopy(self.masterDeck))
         random.shuffle(self.deck)
         self.hand = []
@@ -153,7 +162,11 @@ class Game:
                 time.sleep(.2)
             self.unmuck_card(i)
             self.gui.cardButtons[i].config(command=0)
-        print(self.evaluate_hand())
+        result = self.evaluate_hand()
+        winnings = self.wager * PAYOUT[result]
+        print(f"Result: {result}\n"
+              f"Winnings: {winnings}\n")
+        self.update_credits(winnings)
         self.gui.playButton.config(text="End", command=self.end_round)
 
     def end_round(self):
@@ -178,7 +191,7 @@ class Game:
                 if card.suit != cardList[0].suit:
                     flush = False
                     break
-            return (flush)
+            return flush
 
         def checkStraight(cardList):  # if cards are consecutive - ace can be high or low so check for A,2,3,4,5 as well
             cardList = [x.rank for x in cardList]
@@ -198,45 +211,45 @@ class Game:
             pairs = 0
             sets = 0
             quads = 0
-            jackHigh = False
+            jackhigh = False
             for match in result:
                 if match[1] == 2:
                     pairs += 1
                     if match[0] > 10:
-                        jackHigh = True
+                        jackhigh = True
                 elif match[1] == 3:
                     sets += 1
                 elif match[1] == 4:
                     quads += 1
-            if (quads == 1):
+            if quads == 1:
                 return QUADS
-            elif (sets == 1 and pairs == 1):
+            elif sets == 1 and pairs == 1:
                 return FULLHOUSE
-            elif (pairs == 2):
+            elif pairs == 2:
                 return TWOPAIR
-            elif (sets == 1):
+            elif sets == 1:
                 return THREE
-            elif (pairs == 1 and jackHigh):
+            elif pairs == 1 and jackhigh:
                 return JORB
-            elif (pairs == 1 and not jackHigh):
+            elif pairs == 1 and not jackhigh:
                 return LOWPAIR
             else:
                 return NOTHING
 
-        straightResult = checkStraight(hand)
-        flushResult = checkFlush(hand)
+        straight_result = checkStraight(self.hand)
+        flush_result = checkFlush(self.hand)
 
-        if (straightResult and flushResult):
-            if sorted([x.rank for x in hand]) == [10, 11, 12, 13, 14]:
+        if straight_result and flush_result:
+            if sorted([x.rank for x in self.hand]) == [10, 11, 12, 13, 14]:
                 win = ROYALFLUSH
             else:
                 win = STRAIGHTFLUSH
-        elif straightResult:
+        elif straight_result:
             win = STRAIGHT
-        elif flushResult:
+        elif flush_result:
             win = FLUSH
         else:
-            win = checkPairing(hand)
+            win = checkPairing(self.hand)
 
         return win
 
