@@ -4,6 +4,8 @@ import random
 import itertools
 from copy import deepcopy
 from collections import defaultdict
+import numpy as np
+import pandas as pd
 import re
 import tkinter as tk
 import tkinter.font
@@ -62,10 +64,11 @@ PAYOUT = { #hand name + payout multiplier
     ROYALFLUSH: 250
 }
 
-def get_card_pic(cardName):
-    img = Image.open(f'./resources/cards/{cardName}.png')
+
+def get_card_pic(card_name, shrink=4):
+    img = Image.open(f'./resources/cards/{card_name}.png')
     imgW, imgH = img.size
-    new_img = img.resize((int(imgW / 4), int(imgH / 4)), Image.LANCZOS)
+    new_img = img.resize((int(imgW / shrink), int(imgH / shrink)), Image.LANCZOS)
     return ImageTk.PhotoImage(new_img)
 
 
@@ -81,17 +84,38 @@ class GUI:
 
         self.cardButtons = []
         #create grid
+        bonus_height = 3
+        bonus_width = 3
         col_width = 5
 
-        self.cardBack = get_card_pic('default2')
+        self.cardback = get_card_pic('default2')
+        self.cardback_small = get_card_pic('default2', 12)
 
+        self.main_game_frame = tk.Frame(self.root)
+        self.main_game_frame.grid(row=1, column=0, columnspan=5)
+        self.bonus_game_frame = tk.Frame(self.root)
+        self.bonus_game_frame.grid(row=0, column=0, columnspan=5)
         for i in range(col_width):
             self.root.grid_columnconfigure(i, weight=1)
-            self.cardButtons.append(tk.Button(self.root, image=self.cardBack, bd=0))
+            self.main_game_frame.grid_columnconfigure(i, weight=1)
+            self.cardButtons.append(tk.Button(self.main_game_frame, image=self.cardback, bd=0))
             self.cardButtons[i].grid(row=1, column=i, sticky=tk.NSEW, padx=5, pady=5)
         self.root.grid_rowconfigure(0, weight=1)
         self.root.grid_rowconfigure(1, weight=0)
         self.root.grid_rowconfigure(2, weight=1)
+
+        d = {'frames': [], 'button_lists': []}
+        self.bonus_dataframe = pd.DataFrame(data=d)
+
+
+        for y in range(bonus_height):
+            for x in range(bonus_width):
+                self.bonus_frame_array[x, y] = tk.Frame(self.bonus_game_frame)
+                self.bonus_frame_array[x, y].grid(row=x, column=y, columnspan=5)
+                for i in range(col_width):
+                    self.bonus_frame_array[x, y].grid_columnconfigure(i, weight=1)
+                    self.bonus_button_array[x, y].append(tk.Button(self.main_game_frame, image=self.cardback, bd=0))
+                    self.bonus_button_array[x, y][i].grid(row=0, column=i, sticky=tk.NSEW, padx=5, pady=5)
 
         self.wagerFrame = tk.Frame(self.root)
         self.wagerFrame.grid(row=2, column=0, columnspan=2)
@@ -171,12 +195,12 @@ class Game:
 
     def end_round(self):
         for i in range(5):
-            self.gui.cardButtons[i].config(image=self.gui.cardBack)
+            self.gui.cardButtons[i].config(image=self.gui.cardback)
         self.gui.playButton.config(text="Play", command=self.start_round)
 
     def muck_card(self, cardNum):
-        self.gui.cardButtons[cardNum].configure(image=self.gui.cardBack, command=lambda i=cardNum: self.unmuck_card(i))
-        self.gui.cardButtons[cardNum].image = self.gui.cardBack
+        self.gui.cardButtons[cardNum].configure(image=self.gui.cardback, command=lambda i=cardNum: self.unmuck_card(i))
+        self.gui.cardButtons[cardNum].image = self.gui.cardback
         self.hand[cardNum].mucked = True
 
     def unmuck_card(self, cardNum):
